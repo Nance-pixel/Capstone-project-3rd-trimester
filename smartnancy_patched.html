@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Smart City Management Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .notification-slide {
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes progressFill {
+            from { stroke-dashoffset: 251.2; }
+            to { stroke-dashoffset: var(--target-offset); }
+        }
+        .progress-bar {
+            animation: slideIn 2s ease-out forwards;
+        }
+        
+        /* Dark mode styles */
+        .dark {
+            color-scheme: dark;
+        }
+        .dark body {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+        .dark .bg-white {
+            background-color: #1f2937 !important;
+            color: #f9fafb;
+        }
+        .dark .bg-gray-50 {
+            background-color: #111827 !important;
+        }
+        .dark .bg-gray-100 {
+            background-color: #374151 !important;
+        }
+        .dark .text-gray-800 {
+            color: #f9fafb !important;
+        }
+        .dark .text-gray-600 {
+            color: #d1d5db !important;
+        }
+        .dark .text-gray-500 {
+            color: #9ca3af !important;
+        }
+        .dark .border-gray-200 {
+            border-color: #374151 !important;
+        }
+        .dark .border-gray-300 {
+            border-color: #4b5563 !important;
+        }
+        .dark .shadow-sm {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important;
+        }
+        .dark .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+        }
+        .dark input, .dark select {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #f9fafb !important;
+        }
+        .dark input::placeholder {
+            color: #9ca3af !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+<!-- Login Modal -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="loginModal">
+<div class="bg-white rounded-lg p-8 w-96 max-w-md mx-4">
+<div class="text-center mb-6">
+<div class="gradient-bg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+<i class="fas fa-city text-white text-2xl"></i>
+</div>
+<h2 class="text-2xl font-bold text-gray-800">Smart City Login</h2>
+<p class="text-gray-600 mt-2">Access your city management dashboard</p>
+</div>
+<form class="space-y-4" id="loginForm">
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+<select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" id="userRole">
+<option value="admin">City Administrator</option>
+<option value="environment">Environment Officer</option>
+<option value="utility">Utility Officer</option>
+<option value="traffic">Traffic Control</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+<input class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" id="username" placeholder="Enter username" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+<input class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" id="password" placeholder="Enter password" type="password"/>
+</div>
+<button class="w-full gradient-bg text-white py-2 px-4 rounded-lg hover:opacity-90 transition-opacity font-medium" type="submit">
+                    Sign In
+                </button>
+</form>
+<div class="mt-4 text-xs text-gray-500 text-center">
+                Demo credentials: Any username/password combination works
+            </div>
+</div>
+</div>
+<!-- Main Dashboard -->
+<div class="hidden" id="dashboard">
+<!-- Header -->
+<header class="gradient-bg text-white shadow-lg">
+<div class="px-6 py-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+<i class="fas fa-city text-xl"></i>
+</div>
+<div>
+<h1 class="text-xl font-bold">Smart City Management</h1>
+<p class="text-blue-100 text-sm" id="userInfo">Welcome, Administrator</p>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<div class="relative">
+<button class="relative p-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors" id="themeToggle" title="Toggle Dark/Light Mode">
+<i class="fas fa-moon text-lg" id="themeIcon"></i>
+</button>
+</div>
+<div class="relative">
+<button class="relative p-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors" id="alertsBtn">
+<i class="fas fa-bell text-lg"></i>
+<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" id="alertBadge">3</span>
+</button>
+</div>
+<button class="px-4 py-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors" id="logoutBtn">
+<i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+</div>
+</div>
+</div>
+</header>
+<!-- Navigation Tabs -->
+<nav class="bg-white border-b border-gray-200">
+<div class="px-6">
+<div class="flex space-x-8">
+<button class="nav-tab active py-4 px-2 border-b-2 border-blue-500 text-blue-600 font-medium" data-tab="overview">
+<i class="fas fa-tachometer-alt mr-2"></i>Overview
+                    </button>
+<button class="nav-tab py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium" data-tab="traffic">
+<i class="fas fa-traffic-light mr-2"></i>Traffic
+                    </button>
+<button class="nav-tab py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium" data-tab="environment">
+<i class="fas fa-leaf mr-2"></i>Environment
+                    </button>
+<button class="nav-tab py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium" data-tab="utilities">
+<i class="fas fa-bolt mr-2"></i>Utilities
+                    </button>
+<button class="nav-tab py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium" data-tab="analytics">
+<i class="fas fa-chart-line mr-2"></i>Analytics
+                    </button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="p-6">
+<!-- Overview Tab -->
+<div class="tab-content" id="overview-tab">
+<!-- Key Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-white rounded-lg p-6 shadow-sm card-hover">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium text-gray-600">Air Quality Index</p>
+<p class="text-2xl font-bold text-green-600" id="aqiValue">42</p>
+<p class="text-xs text-green-600">Good</p>
+</div>
+<div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+<i class="fas fa-wind text-green-600 text-xl"></i>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm card-hover">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium text-gray-600">Traffic Flow</p>
+<p class="text-2xl font-bold text-yellow-600" id="trafficValue">78%</p>
+<p class="text-xs text-yellow-600">Moderate</p>
+</div>
+<div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+<i class="fas fa-car text-yellow-600 text-xl"></i>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm card-hover">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium text-gray-600">Energy Usage</p>
+<p class="text-2xl font-bold text-blue-600" id="energyValue">1.2MW</p>
+<p class="text-xs text-blue-600">Normal</p>
+</div>
+<div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+<i class="fas fa-bolt text-blue-600 text-xl"></i>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm card-hover">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-medium text-gray-600">Waste Collection</p>
+<p class="text-2xl font-bold text-purple-600" id="wasteValue">85%</p>
+<p class="text-xs text-purple-600">On Schedule</p>
+</div>
+<div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+<i class="fas fa-trash text-purple-600 text-xl"></i>
+</div>
+</div>
+</div>
+</div>
+<!-- Animated Progress Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-6">Real-Time Traffic Flow</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm font-medium text-gray-700">Main Street</span>
+<span class="text-sm text-red-600 font-semibold">85%</span>
+</div>
+<div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+<div class="bg-gradient-to-r from-red-400 to-red-600 h-3 rounded-full animate-pulse" style="width: 85%; animation: slideIn 2s ease-out;"></div>
+</div>
+<div class="flex items-center justify-between mb-2 mt-4">
+<span class="text-sm font-medium text-gray-700">5th Avenue</span>
+<span class="text-sm text-yellow-600 font-semibold">65%</span>
+</div>
+<div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 h-3 rounded-full" style="width: 65%; animation: slideIn 2.5s ease-out;"></div>
+</div>
+<div class="flex items-center justify-between mb-2 mt-4">
+<span class="text-sm font-medium text-gray-700">Park Road</span>
+<span class="text-sm text-green-600 font-semibold">35%</span>
+</div>
+<div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+<div class="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full" style="width: 35%; animation: slideIn 3s ease-out;"></div>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-6">Energy Distribution</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+<div class="w-16 h-16 mx-auto mb-3 relative">
+<div class="absolute inset-0 bg-blue-200 rounded-full animate-ping"></div>
+<div class="relative w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+<i class="fas fa-home text-white text-xl"></i>
+</div>
+</div>
+<p class="text-sm font-medium text-gray-700">Residential</p>
+<p class="text-lg font-bold text-blue-600">0.4MW</p>
+</div>
+<div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+<div class="w-16 h-16 mx-auto mb-3 relative">
+<div class="absolute inset-0 bg-green-200 rounded-full animate-ping" style="animation-delay: 0.5s;"></div>
+<div class="relative w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
+<i class="fas fa-building text-white text-xl"></i>
+</div>
+</div>
+<p class="text-sm font-medium text-gray-700">Commercial</p>
+<p class="text-lg font-bold text-green-600">0.3MW</p>
+</div>
+<div class="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+<div class="w-16 h-16 mx-auto mb-3 relative">
+<div class="absolute inset-0 bg-purple-200 rounded-full animate-ping" style="animation-delay: 1s;"></div>
+<div class="relative w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center">
+<i class="fas fa-industry text-white text-xl"></i>
+</div>
+</div>
+<p class="text-sm font-medium text-gray-700">Industrial</p>
+<p class="text-lg font-bold text-purple-600">0.35MW</p>
+</div>
+<div class="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+<div class="w-16 h-16 mx-auto mb-3 relative">
+<div class="absolute inset-0 bg-orange-200 rounded-full animate-ping" style="animation-delay: 1.5s;"></div>
+<div class="relative w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center">
+<i class="fas fa-university text-white text-xl"></i>
+</div>
+</div>
+<p class="text-sm font-medium text-gray-700">Public</p>
+<p class="text-lg font-bold text-orange-600">0.15MW</p>
+</div>
+</div>
+</div>
+</div>
+<!-- City Map and Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">City Overview Map</h3>
+<div class="relative bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+<div class="text-center">
+<i class="fas fa-map text-4xl text-gray-400 mb-2"></i>
+<p class="text-gray-500">Interactive City Map</p>
+<div class="mt-4 flex justify-center space-x-4">
+<div class="flex items-center">
+<div class="w-3 h-3 bg-green-500 rounded-full pulse-dot mr-2"></div>
+<span class="text-sm text-gray-600">Normal</span>
+</div>
+<div class="flex items-center">
+<div class="w-3 h-3 bg-yellow-500 rounded-full pulse-dot mr-2"></div>
+<span class="text-sm text-gray-600">Attention</span>
+</div>
+<div class="flex items-center">
+<div class="w-3 h-3 bg-red-500 rounded-full pulse-dot mr-2"></div>
+<span class="text-sm text-gray-600">Critical</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Alerts</h3>
+<div class="space-y-3" id="alertsList">
+<div class="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
+<div class="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+<div>
+<p class="text-sm font-medium text-red-800">High Traffic Congestion</p>
+<p class="text-xs text-red-600">Main St &amp; 5th Ave - 2 min ago</p>
+</div>
+</div>
+<div class="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+<div class="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+<div>
+<p class="text-sm font-medium text-yellow-800">Waste Bin Full</p>
+<p class="text-xs text-yellow-600">Central Park Area - 15 min ago</p>
+</div>
+</div>
+<div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+<div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+<div>
+<p class="text-sm font-medium text-blue-800">Energy Peak Detected</p>
+<p class="text-xs text-blue-600">Downtown District - 1 hour ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Traffic Tab -->
+<div class="tab-content hidden" id="traffic-tab">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Traffic Control</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-600">Main St Signal</span>
+<button class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                    Active
+                                </button>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-600">5th Ave Signal</span>
+<button class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                                    Maintenance
+                                </button>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-600">Park Rd Signal</span>
+<button class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                    Active
+                                </button>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Congestion Levels</h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-600">Downtown</span>
+<div class="flex items-center">
+<div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+<div class="bg-red-500 h-2 rounded-full" style="width: 85%"></div>
+</div>
+<span class="text-xs text-red-600">85%</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-600">Suburbs</span>
+<div class="flex items-center">
+<div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+<div class="bg-yellow-500 h-2 rounded-full" style="width: 45%"></div>
+</div>
+<span class="text-xs text-yellow-600">45%</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-gray-600">Industrial</span>
+<div class="flex items-center">
+<div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+<div class="bg-green-500 h-2 rounded-full" style="width: 25%"></div>
+</div>
+<span class="text-xs text-green-600">25%</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+<div class="space-y-2">
+<button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                Optimize Signal Timing
+                            </button>
+<button class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                Generate Route Report
+                            </button>
+<button class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                                Emergency Override
+                            </button>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-6">Smart Traffic System Progress</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="text-center">
+<div class="relative w-24 h-24 mx-auto mb-4">
+<svg class="w-24 h-24 transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="#e5e7eb" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="none" r="40" stroke="#3b82f6" stroke-dasharray="251.2" stroke-dashoffset="62.8" stroke-width="8" style="animation: progressFill 3s ease-out forwards;"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-xl font-bold text-blue-600">75%</span>
+</div>
+</div>
+<h4 class="font-semibold text-gray-800">Signal Optimization</h4>
+<p class="text-sm text-gray-600">AI-powered timing</p>
+</div>
+<div class="text-center">
+<div class="relative w-24 h-24 mx-auto mb-4">
+<svg class="w-24 h-24 transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="#e5e7eb" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="none" r="40" stroke="#10b981" stroke-dasharray="251.2" stroke-dashoffset="50.24" stroke-width="8" style="animation: progressFill 3.5s ease-out forwards;"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-xl font-bold text-green-600">80%</span>
+</div>
+</div>
+<h4 class="font-semibold text-gray-800">Route Planning</h4>
+<p class="text-sm text-gray-600">Dynamic routing</p>
+</div>
+<div class="text-center">
+<div class="relative w-24 h-24 mx-auto mb-4">
+<svg class="w-24 h-24 transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="#e5e7eb" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="none" r="40" stroke="#f59e0b" stroke-dasharray="251.2" stroke-dashoffset="87.92" stroke-width="8" style="animation: progressFill 4s ease-out forwards;"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-xl font-bold text-yellow-600">65%</span>
+</div>
+</div>
+<h4 class="font-semibold text-gray-800">Congestion Reduction</h4>
+<p class="text-sm text-gray-600">Real-time monitoring</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Environment Tab -->
+<div class="tab-content hidden" id="environment-tab">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-medium text-gray-800">Air Quality</h4>
+<i class="fas fa-wind text-green-600"></i>
+</div>
+<p class="text-2xl font-bold text-green-600">42 AQI</p>
+<p class="text-sm text-gray-600">Good</p>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-medium text-gray-800">Noise Level</h4>
+<i class="fas fa-volume-up text-yellow-600"></i>
+</div>
+<p class="text-2xl font-bold text-yellow-600">65 dB</p>
+<p class="text-sm text-gray-600">Moderate</p>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-medium text-gray-800">Temperature</h4>
+<i class="fas fa-thermometer-half text-blue-600"></i>
+</div>
+<p class="text-2xl font-bold text-blue-600">22°C</p>
+<p class="text-sm text-gray-600">Optimal</p>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-medium text-gray-800">Humidity</h4>
+<i class="fas fa-tint text-purple-600"></i>
+</div>
+<p class="text-2xl font-bold text-purple-600">58%</p>
+<p class="text-sm text-gray-600">Normal</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-6">Smart Environment Tech</h3>
+<div class="space-y-6">
+<div class="flex items-center space-x-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
+<div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+<i class="fas fa-leaf text-white"></i>
+</div>
+<div class="flex-1">
+<h4 class="font-semibold text-gray-800">AI Air Quality Prediction</h4>
+<div class="w-full bg-green-200 rounded-full h-2 mt-2">
+<div class="bg-green-500 h-2 rounded-full" style="width: 92%; animation: slideIn 2s ease-out;"></div>
+</div>
+<p class="text-sm text-green-600 mt-1">92% Accuracy</p>
+</div>
+</div>
+<div class="flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg">
+<div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+<i class="fas fa-cloud text-white"></i>
+</div>
+<div class="flex-1">
+<h4 class="font-semibold text-gray-800">Weather Pattern Analysis</h4>
+<div class="w-full bg-blue-200 rounded-full h-2 mt-2">
+<div class="bg-blue-500 h-2 rounded-full" style="width: 88%; animation: slideIn 2.5s ease-out;"></div>
+</div>
+<p class="text-sm text-blue-600 mt-1">88% Prediction Rate</p>
+</div>
+</div>
+<div class="flex items-center space-x-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg">
+<div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center animate-spin" style="animation-duration: 3s;">
+<i class="fas fa-microchip text-white"></i>
+</div>
+<div class="flex-1">
+<h4 class="font-semibold text-gray-800">IoT Sensor Network</h4>
+<div class="w-full bg-purple-200 rounded-full h-2 mt-2">
+<div class="bg-purple-500 h-2 rounded-full" style="width: 95%; animation: slideIn 3s ease-out;"></div>
+</div>
+<p class="text-sm text-purple-600 mt-1">95% Network Coverage</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Sensor Network Status</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+<div class="flex items-center">
+<div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+<span class="text-sm font-medium">Air Quality Sensors</span>
+</div>
+<span class="text-sm text-green-600">24/25 Online</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+<div class="flex items-center">
+<div class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+<span class="text-sm font-medium">Noise Monitors</span>
+</div>
+<span class="text-sm text-yellow-600">18/20 Online</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+<div class="flex items-center">
+<div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+<span class="text-sm font-medium">Weather Stations</span>
+</div>
+<span class="text-sm text-green-600">12/12 Online</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Utilities Tab -->
+<div class="tab-content hidden" id="utilities-tab">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Power Grid</h3>
+<div class="text-center">
+<div class="text-3xl font-bold text-blue-600 mb-2">1.2 MW</div>
+<p class="text-sm text-gray-600 mb-4">Current Load</p>
+<div class="w-full bg-gray-200 rounded-full h-3">
+<div class="bg-blue-600 h-3 rounded-full" style="width: 75%"></div>
+</div>
+<p class="text-xs text-gray-500 mt-2">75% Capacity</p>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Water System</h3>
+<div class="text-center">
+<div class="text-3xl font-bold text-cyan-600 mb-2">850K L</div>
+<p class="text-sm text-gray-600 mb-4">Daily Usage</p>
+<div class="w-full bg-gray-200 rounded-full h-3">
+<div class="bg-cyan-600 h-3 rounded-full" style="width: 60%"></div>
+</div>
+<p class="text-xs text-gray-500 mt-2">60% Capacity</p>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Waste Management</h3>
+<div class="text-center">
+<div class="text-3xl font-bold text-green-600 mb-2">85%</div>
+<p class="text-sm text-gray-600 mb-4">Collection Rate</p>
+<div class="w-full bg-gray-200 rounded-full h-3">
+<div class="bg-green-600 h-3 rounded-full" style="width: 85%"></div>
+</div>
+<p class="text-xs text-gray-500 mt-2">On Schedule</p>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Utility Management Controls</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<button class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
+<i class="fas fa-bolt text-blue-600 text-xl mb-2"></i>
+<h4 class="font-medium text-gray-800">Load Balancing</h4>
+<p class="text-sm text-gray-600">Optimize power distribution</p>
+</button>
+<button class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
+<i class="fas fa-water text-cyan-600 text-xl mb-2"></i>
+<h4 class="font-medium text-gray-800">Water Pressure</h4>
+<p class="text-sm text-gray-600">Adjust system pressure</p>
+</button>
+<button class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
+<i class="fas fa-route text-green-600 text-xl mb-2"></i>
+<h4 class="font-medium text-gray-800">Route Optimization</h4>
+<p class="text-sm text-gray-600">Plan collection routes</p>
+</button>
+</div>
+</div>
+</div>
+<!-- Analytics Tab -->
+<div class="tab-content hidden" id="analytics-tab">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-4">Predictive Analytics</h3>
+<div class="space-y-4">
+<div class="p-4 bg-blue-50 rounded-lg">
+<h4 class="font-medium text-blue-800">Traffic Prediction</h4>
+<p class="text-sm text-blue-600 mt-1">Expected 15% increase during evening rush hour</p>
+</div>
+<div class="p-4 bg-green-50 rounded-lg">
+<h4 class="font-medium text-green-800">Energy Forecast</h4>
+<p class="text-sm text-green-600 mt-1">Optimal conditions for renewable energy generation</p>
+</div>
+<div class="p-4 bg-yellow-50 rounded-lg">
+<h4 class="font-medium text-yellow-800">Maintenance Alert</h4>
+<p class="text-sm text-yellow-600 mt-1">Water pump #3 requires attention within 48 hours</p>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<h3 class="text-lg font-semibold text-gray-800 mb-6">Next-Gen City Technologies</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="text-center p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+<div class="w-16 h-16 mx-auto mb-3 relative">
+<div class="absolute inset-0 bg-indigo-200 rounded-full animate-ping"></div>
+<div class="relative w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+<i class="fas fa-robot text-white text-xl"></i>
+</div>
+</div>
+<h4 class="font-semibold text-gray-800 mb-1">AI Traffic Control</h4>
+<div class="text-2xl font-bold text-indigo-600 mb-1">94%</div>
+<p class="text-xs text-gray-600">Efficiency Rate</p>
+</div>
+<div class="text-center p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+<div class="w-16 h-16 mx-auto mb-3 relative">
+<div class="absolute inset-0 bg-emerald-200 rounded-full animate-ping" style="animation-delay: 0.5s;"></div>
+<div class="relative w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+<i class="fas fa-solar-panel text-white text-xl"></i>
+</div>
+</div>
+<h4 class="font-semibold text-gray-800 mb-1">Smart Grid</h4>
+<div class="text-2xl font-bold text-emerald-600 mb-1">87%</div>
+<p class="text-xs text-gray-600">Renewable Energy</p>
+</div>
+<div class="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+<div class="w-16 h-16 mx-auto mb-3 relative">
+<div class="absolute inset-0 bg-blue-200 rounded-full animate-ping" style="animation-delay: 1s;"></div>
+<div class="relative w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center">
+<i class="fas fa-wifi text-white text-xl"></i>
+</div>
+</div>
+<h4 class="font-semibold text-gray-800 mb-1">5G Network</h4>
+<div class="text-2xl font-bold text-blue-600 mb-1">98%</div>
+<p class="text-xs text-gray-600">Coverage Area</p>
+</div>
+<div class="text-center p-4 bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl border border-rose-100">
+<div class="w-16 h-16 mx-auto mb-3 relative">
+<div class="absolute inset-0 bg-rose-200 rounded-full animate-ping" style="animation-delay: 1.5s;"></div>
+<div class="relative w-16 h-16 bg-gradient-to-r from-rose-500 to-pink-600 rounded-full flex items-center justify-center">
+<i class="fas fa-brain text-white text-xl"></i>
+</div>
+</div>
+<h4 class="font-semibold text-gray-800 mb-1">Predictive AI</h4>
+<div class="text-2xl font-bold text-rose-600 mb-1">91%</div>
+<p class="text-xs text-gray-600">Accuracy Score</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-lg p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-semibold text-gray-800">Generate Reports</h3>
+<div class="flex space-x-2">
+<select class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+<option>Daily Report</option>
+<option>Weekly Report</option>
+<option>Monthly Report</option>
+</select>
+<button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+<i class="fas fa-download mr-2"></i>Generate
+                            </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="p-4 border border-gray-200 rounded-lg">
+<h4 class="font-medium text-gray-800 mb-2">Traffic Analysis</h4>
+<p class="text-sm text-gray-600">Comprehensive traffic flow and congestion report</p>
+</div>
+<div class="p-4 border border-gray-200 rounded-lg">
+<h4 class="font-medium text-gray-800 mb-2">Environmental Impact</h4>
+<p class="text-sm text-gray-600">Air quality, noise levels, and environmental trends</p>
+</div>
+<div class="p-4 border border-gray-200 rounded-lg">
+<h4 class="font-medium text-gray-800 mb-2">Resource Utilization</h4>
+<p class="text-sm text-gray-600">Energy consumption and utility usage patterns</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Notification Container -->
+<div class="fixed top-4 right-4 z-40 space-y-2" id="notificationContainer"></div>
+<!-- Alerts Modal -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" id="alertsModal">
+<div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-semibold text-gray-800">System Alerts</h3>
+<button class="text-gray-400 hover:text-gray-600" id="closeAlertsModal">
+<i class="fas fa-times"></i>
+</button>
+</div>
+<div class="space-y-3" id="modalAlertsList">
+<!-- Alerts will be populated here -->
+</div>
+</div>
+</div>
+<script>
+        // Application State
+        let currentUser = null;
+        let currentTab = 'overview';
+        let charts = {};
+        let realTimeData = {
+            traffic: 78,
+            aqi: 42,
+            energy: 1.2,
+            waste: 85
+        };
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+            startRealTimeUpdates();
+        });
+
+        // Event Listeners
+        function initializeEventListeners() {
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Navigation tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+            
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            
+            // Alerts button
+            document.getElementById('alertsBtn').addEventListener('click', showAlertsModal);
+            document.getElementById('closeAlertsModal').addEventListener('click', hideAlertsModal);
+            
+            // Theme toggle button
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Initialize theme from localStorage
+            initializeTheme();
+        }
+
+        // Authentication
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const role = document.getElementById('userRole').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                currentUser = {
+                    role: role,
+                    username: username
+                };
+                
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                
+                updateUserInfo();
+                initializeAnimations();
+                showNotification('Login successful!', 'success');
+            } else {
+                showNotification('Please enter username and password', 'error');
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            
+            // Clear update interval to prevent memory leaks
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            
+            // Clear any running animations
+            const animatedElements = document.querySelectorAll('[style*="animation"]');
+            animatedElements.forEach(el => {
+                el.style.animation = '';
+            });
+            
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('hidden');
+            showNotification('Logged out successfully', 'info');
+        }
+
+        function updateUserInfo() {
+            const roleNames = {
+                admin: 'Administrator',
+                environment: 'Environment Officer',
+                utility: 'Utility Officer',
+                traffic: 'Traffic Control Officer'
+            };
+            
+            document.getElementById('userInfo').textContent = 
+                `Welcome, ${roleNames[currentUser.role]} - ${currentUser.username}`;
+        }
+
+        // Tab Navigation
+        function switchTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active', 'border-blue-500', 'text-blue-600');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.remove('border-transparent', 'text-gray-500');
+            
+            // Show/hide tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            currentTab = tabName;
+            
+            // Trigger animations for newly visible content
+            setTimeout(() => {
+                triggerProgressAnimations();
+            }, 100);
+        }
+
+        // Animation Initialization
+        function initializeAnimations() {
+            // Trigger progress bar animations after login
+            setTimeout(() => {
+                triggerProgressAnimations();
+            }, 500);
+        }
+
+        function triggerProgressAnimations() {
+            // Add staggered animations to progress elements
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach((bar, index) => {
+                setTimeout(() => {
+                    bar.style.animation = `slideIn ${2 + index * 0.5}s ease-out forwards`;
+                }, index * 200);
+            });
+        }
+
+        // Real-time Updates
+        let updateInterval = null;
+        
+        function startRealTimeUpdates() {
+            // Only update data values, not charts continuously
+            updateInterval = setInterval(updateRealTimeData, 10000); // Update every 10 seconds instead of 5
+        }
+
+        function updateRealTimeData() {
+            // Simulate real-time data changes
+            realTimeData.traffic += (Math.random() - 0.5) * 5; // Reduced change rate
+            realTimeData.traffic = Math.max(0, Math.min(100, realTimeData.traffic));
+            
+            realTimeData.aqi += (Math.random() - 0.5) * 2; // Reduced change rate
+            realTimeData.aqi = Math.max(0, Math.min(150, realTimeData.aqi));
+            
+            realTimeData.energy += (Math.random() - 0.5) * 0.1; // Reduced change rate
+            realTimeData.energy = Math.max(0.5, Math.min(2.0, realTimeData.energy));
+            
+            realTimeData.waste += (Math.random() - 0.5) * 2; // Reduced change rate
+            realTimeData.waste = Math.max(0, Math.min(100, realTimeData.waste));
+            
+            // Update UI elements only
+            document.getElementById('trafficValue').textContent = Math.round(realTimeData.traffic) + '%';
+            document.getElementById('aqiValue').textContent = Math.round(realTimeData.aqi);
+            document.getElementById('energyValue').textContent = realTimeData.energy.toFixed(1) + 'MW';
+            document.getElementById('wasteValue').textContent = Math.round(realTimeData.waste) + '%';
+            
+            // Update status colors
+            updateStatusColors();
+            
+            // Occasionally trigger alerts (less frequently)
+            if (Math.random() < 0.05) {
+                triggerRandomAlert();
+            }
+        }
+
+        function updateStatusColors() {
+            const trafficElement = document.getElementById('trafficValue');
+            const aqiElement = document.getElementById('aqiValue');
+            
+            // Update traffic color
+            if (realTimeData.traffic > 80) {
+                trafficElement.className = 'text-2xl font-bold text-red-600';
+            } else if (realTimeData.traffic > 60) {
+                trafficElement.className = 'text-2xl font-bold text-yellow-600';
+            } else {
+                trafficElement.className = 'text-2xl font-bold text-green-600';
+            }
+            
+            // Update AQI color
+            if (realTimeData.aqi > 100) {
+                aqiElement.className = 'text-2xl font-bold text-red-600';
+            } else if (realTimeData.aqi > 50) {
+                aqiElement.className = 'text-2xl font-bold text-yellow-600';
+            } else {
+                aqiElement.className = 'text-2xl font-bold text-green-600';
+            }
+        }
+
+        // Notifications and Alerts
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            notification.className = `${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg notification-slide`;
+            notification.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        function triggerRandomAlert() {
+            const alerts = [
+                { type: 'traffic', message: 'High congestion detected on Main Street', severity: 'high' },
+                { type: 'environment', message: 'Air quality sensor offline in District 3', severity: 'medium' },
+                { type: 'utility', message: 'Power consumption peak detected', severity: 'low' },
+                { type: 'waste', message: 'Waste collection delayed in Zone B', severity: 'medium' }
+            ];
+            
+            const alert = alerts[Math.floor(Math.random() * alerts.length)];
+            addAlert(alert);
+            
+            if (alert.severity === 'high') {
+                showNotification(alert.message, 'error');
+            }
+        }
+
+        function addAlert(alert) {
+            const alertsList = document.getElementById('alertsList');
+            const alertElement = document.createElement('div');
+            
+            const severityColors = {
+                high: 'bg-red-50 text-red-800',
+                medium: 'bg-yellow-50 text-yellow-800',
+                low: 'bg-blue-50 text-blue-800'
+            };
+            
+            const dotColors = {
+                high: 'bg-red-500',
+                medium: 'bg-yellow-500',
+                low: 'bg-blue-500'
+            };
+            
+            alertElement.className = `flex items-start space-x-3 p-3 ${severityColors[alert.severity]} rounded-lg`;
+            alertElement.innerHTML = `
+                <div class="w-2 h-2 ${dotColors[alert.severity]} rounded-full mt-2"></div>
+                <div>
+                    <p class="text-sm font-medium">${alert.message}</p>
+                    <p class="text-xs">Just now</p>
+                </div>
+            `;
+            
+            alertsList.insertBefore(alertElement, alertsList.firstChild);
+            
+            // Keep only latest 5 alerts
+            while (alertsList.children.length > 5) {
+                alertsList.removeChild(alertsList.lastChild);
+            }
+            
+            // Update alert badge
+            const badge = document.getElementById('alertBadge');
+            const currentCount = parseInt(badge.textContent) || 0;
+            badge.textContent = Math.min(currentCount + 1, 9);
+        }
+
+        function showAlertsModal() {
+            document.getElementById('alertsModal').classList.remove('hidden');
+            
+            // Copy alerts to modal
+            const modalList = document.getElementById('modalAlertsList');
+            const alertsList = document.getElementById('alertsList');
+            modalList.innerHTML = alertsList.innerHTML;
+        }
+
+        function hideAlertsModal() {
+            document.getElementById('alertsModal').classList.add('hidden');
+        }
+
+        // Utility Functions
+        function generateTrafficData() {
+            return Array.from({length: 24}, (_, i) => {
+                // Simulate traffic patterns (higher during rush hours)
+                let base = 20;
+                if (i >= 7 && i <= 9) base = 80; // Morning rush
+                if (i >= 17 && i <= 19) base = 90; // Evening rush
+                if (i >= 12 && i <= 14) base = 60; // Lunch time
+                
+                return base + (Math.random() - 0.5) * 20;
+            });
+        }
+
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('cityDashboardTheme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fas fa-sun text-lg';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').className = 'fas fa-moon text-lg';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (isDark) {
+                // Switch to light mode
+                document.documentElement.classList.remove('dark');
+                themeIcon.className = 'fas fa-moon text-lg';
+                localStorage.setItem('cityDashboardTheme', 'light');
+                showNotification('Switched to light mode', 'info');
+            } else {
+                // Switch to dark mode
+                document.documentElement.classList.add('dark');
+                themeIcon.className = 'fas fa-sun text-lg';
+                localStorage.setItem('cityDashboardTheme', 'dark');
+                showNotification('Switched to dark mode', 'info');
+            }
+        }
+
+        // Initialize some demo alerts
+        setTimeout(() => {
+            addAlert({ type: 'traffic', message: 'High Traffic Congestion', severity: 'high' });
+            addAlert({ type: 'waste', message: 'Waste Bin Full', severity: 'medium' });
+            addAlert({ type: 'utility', message: 'Energy Peak Detected', severity: 'low' });
+        }, 1000);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e9be28b3a45525',t:'MTc1Nzc4ODUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<script>
+const API_BASE = "http://localhost:4000/api";
+
+async function apiRequest(path, options = {}) {
+  const token = localStorage.getItem("token");
+  options.headers = {
+    ...(options.headers || {}),
+    "Content-Type": "application/json",
+    ...(token ? { "Authorization": "Bearer " + token } : {})
+  };
+  const res = await fetch(API_BASE + path, options);
+  return res.json();
+}
+
+async function loginUser() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  
+  const res = await apiRequest("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password })
+  });
+
+  if (res.ok) {
+    localStorage.setItem("token", res.token);
+    alert("Login successful!");
+    loadDashboard();
+  } else {
+    alert("Login failed: " + (res.error || "Unknown error"));
+  }
+}
+
+async function loadDashboard() {
+  const res = await apiRequest("/metrics");
+  if (res.ok) {
+    if (document.getElementById("traffic")) document.getElementById("traffic").innerText = res.metrics.traffic + "%";
+    if (document.getElementById("aqi")) document.getElementById("aqi").innerText = res.metrics.aqi;
+    if (document.getElementById("energy")) document.getElementById("energy").innerText = res.metrics.energy + " kWh";
+    if (document.getElementById("waste")) document.getElementById("waste").innerText = res.metrics.waste + "%";
+  }
+
+  const chartData = await apiRequest("/metrics/chart-data");
+  if (chartData.ok && document.getElementById("metricsChart")) {
+    new Chart(document.getElementById("metricsChart"), {
+      type: "line",
+      data: { labels: chartData.labels, datasets: chartData.datasets }
+    });
+  }
+
+  loadAlerts();
+}
+
+async function loadAlerts() {
+  const res = await apiRequest("/alerts");
+  if (res.ok && document.getElementById("alerts")) {
+    const container = document.getElementById("alerts");
+    container.innerHTML = "";
+    res.alerts.forEach(a => {
+      const div = document.createElement("div");
+      div.className = "alert " + a.severity;
+      div.innerText = `[${a.type}] ${a.message} (${a.location})`;
+      container.appendChild(div);
+    });
+  }
+}
+
+async function postAlert() {
+  const res = await apiRequest("/alerts", {
+    method: "POST",
+    body: JSON.stringify({
+      type: "Emergency",
+      message: "Test alert",
+      severity: "high",
+      location: "City Center"
+    })
+  });
+  if (res.ok) {
+    alert("Alert posted!");
+    loadAlerts();
+  } else {
+    alert("Failed: " + (res.error || "Unknown"));
+  }
+}
+</script>
+</body>
+</html>

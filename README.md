@@ -7,6 +7,9 @@ This backend is built to work with the provided frontend (`smartnancy.html` / `t
 - CORS enabled so you can serve the frontend from the filesystem or another origin
 - Docker + docker-compose for local run (includes MongoDB)
 
+
+![Uploading Overview .svg…]()
+
 ## Quick start (local)
 
 1. Copy `.env.example` to `.env` and edit values.
